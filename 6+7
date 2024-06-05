@@ -1,0 +1,251 @@
+#include <iostream>
+#include <cstdlib>
+
+using namespace std;
+
+template <typename T>
+class DynamicArray {
+private:
+    T* data;
+    int size;
+    int capacity;
+    int growth;
+
+public:
+    DynamicArray(int initialCapacity = 10, int growthBy = 5) : size(0), capacity(initialCapacity), growth(growthBy) {
+        data = new T[capacity];
+    }
+
+    ~DynamicArray() {
+        delete[] data;
+    }
+
+    int getSize() const {
+        return size;
+    }
+
+    void setSize(int newSize) {
+        if (newSize > capacity) {
+            int newCapacity = newSize + growth;
+            T* newData = new T[newCapacity];
+            for (int i = 0; i < size; ++i) {
+                newData[i] = data[i];
+            }
+            delete[] data;
+            data = newData;
+            capacity = newCapacity;
+        }
+        size = newSize;
+    }
+
+    int getUpperBound() const {
+        return size - 1;
+    }
+
+    bool isEmpty() const {
+        return size == 0;
+    }
+
+    void freeExtra() {
+        setSize(size);
+    }
+
+    void removeAll() {
+        size = 0;
+    }
+
+    T& getAt(int index) {
+        if (index < 0 || index >= size) {
+            cerr << "Index out of range" << endl;
+            exit(1);
+        }
+        return data[index];
+    }
+
+    const T& getAt(int index) const {
+        if (index < 0 || index >= size) {
+            cerr << "Index out of range" << endl;
+            exit(1);
+        }
+        return data[index];
+    }
+
+    void setAt(int index, const T& value) {
+        if (index < 0 || index >= size) {
+            cerr << "Index out of range" << endl;
+            exit(1);
+        }
+        data[index] = value;
+    }
+
+    void add(const T& value) {
+        if (size == capacity) {
+            setSize(size + growth);
+        }
+        data[size++] = value;
+    }
+
+    T& operator[](int index) {
+        return getAt(index);
+    }
+
+    const T& operator[](int index) const {
+        return getAt(index);
+    }
+
+    void append(const DynamicArray<T>& other) {
+        int newSize = size + other.getSize();
+        if (newSize > capacity) {
+            setSize(newSize);
+        }
+        for (int i = 0; i < other.getSize(); ++i) {
+            data[size++] = other[i];
+        }
+    }
+
+    DynamicArray<T>& operator=(const DynamicArray<T>& other) {
+        if (this != &other) {
+            delete[] data;
+            size = other.size;
+            capacity = other.capacity;
+            growth = other.growth;
+            data = new T[capacity];
+            for (int i = 0; i < size; ++i) {
+                data[i] = other.data[i];
+            }
+        }
+        return *this;
+    }
+
+    T* getData() const {
+        return data;
+    }
+
+    void insertAt(int index, const T& value) {
+        if (index < 0 || index > size) {
+            cerr << "Index out of range" << endl;
+            exit(1);
+        }
+        if (size == capacity) {
+            setSize(size + growth);
+        }
+        for (int i = size; i > index; --i) {
+            data[i] = data[i - 1];
+        }
+        data[index] = value;
+        ++size;
+    }
+
+    void removeAt(int index) {
+        if (index < 0 || index >= size) {
+            cerr << "Index out of range" << endl;
+            exit(1);
+        }
+        for (int i = index; i < size - 1; ++i) {
+            data[i] = data[i + 1];
+        }
+        --size;
+    }
+};
+
+template <typename T>
+T findMax(const DynamicArray<T>& arr) {
+    if (arr.isEmpty()) {
+        cerr << "Array is empty" << endl;
+        exit(1);
+    }
+    T maxVal = arr[0];
+    for (int i = 1; i < arr.getSize(); ++i) {
+        if (arr[i] > maxVal) {
+            maxVal = arr[i];
+        }
+    }
+    return maxVal;
+}
+
+template <typename T>
+T findMin(const DynamicArray<T>& arr) {
+    if (arr.isEmpty()) {
+        cerr << "Array is empty" << endl;
+        exit(1);
+    }
+    T minVal = arr[0];
+    for (int i = 1; i < arr.getSize(); ++i) {
+        if (arr[i] < minVal) {
+            minVal = arr[i];
+        }
+    }
+    return minVal;
+}
+
+template <typename T>
+void bubbleSort(DynamicArray<T>& arr) {
+    int n = arr.getSize();
+    for (int i = 0; i < n - 1; ++i) {
+        for (int j = 0; j < n - i - 1; ++j) {
+            if (arr[j] > arr[j + 1]) {
+                swap(arr[j], arr[j + 1]);
+            }
+        }
+    }
+}
+
+template <typename T>
+int binarySearch(const DynamicArray<T>& arr, const T& value) {
+    int left = 0;
+    int right = arr.getSize() - 1;
+    while (left <= right) {
+        int mid = left + (right - left) / 2;
+        if (arr[mid] == value) {
+            return mid;
+        }
+        if (arr[mid] < value) {
+            left = mid + 1;
+        }
+        else {
+            right = mid - 1;
+        }
+    }
+    return -1;
+}
+
+template <typename T>
+void replaceElement(DynamicArray<T>& arr, const T& oldValue, const T& newValue) {
+    for (int i = 0; i < arr.getSize(); ++i) {
+        if (arr[i] == oldValue) {
+            arr[i] = newValue;
+            return;
+        }
+    }
+    cerr << "Element not found" << endl;
+}
+
+int main() {
+    DynamicArray<int> arr;
+    arr.add(5);
+    arr.add(3);
+    arr.add(8);
+    arr.add(1);
+    arr.add(6);
+
+    cout << "Original array:" << endl;
+    for (int i = 0; i < arr.getSize(); ++i) {
+        cout << arr[i] << " ";
+    }
+    cout << endl;
+
+    cout << "Max value: " << findMax(arr) << endl;
+    cout << "Min value: " << findMin(arr) << endl;
+
+    bubbleSort(arr);
+    cout << "Sorted array:" << endl;
+    for (int i = 0; i < arr.getSize(); ++i) {
+        cout << arr[i] << " ";
+    }
+    cout << endl;
+
+    int index = binarySearch(arr, 6);
+    if (index != -1) {
+        cout << "Element 6 found at index: " << index + 1 << endl;
+    }
+}
